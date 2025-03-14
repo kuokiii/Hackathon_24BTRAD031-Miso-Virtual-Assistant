@@ -102,7 +102,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 To prepare the project for deployment:
 
 ### 1️⃣ Ensure all environment variables are properly configured in your Vercel project settings:
-- `OPENROUTER_API_KEY`
+- `OPENAI_API_KEY`
 - Any other API keys needed for weather and news services
 
 ### 2️⃣ Add a `vercel.json` configuration file:
