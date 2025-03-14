@@ -160,6 +160,6 @@ The application will be deployed with all the necessary environment variables an
 
 ### 🌟 **Made with ❤️ by Nirupam Thapa aka kuoki**
 
-🔗 **Try Miso now**: [Miso - Smart Virtual Assistant](https://www.miso-ai.vercel.app)
+🔗 **Try Miso now**: [Miso - Smart Virtual Assistant](https://miso-ai.vercel.app)
 
 
