@@ -1,0 +1,23 @@
+# CODEOWNERS file for Miso - Smart Virtual Assistant
+
+# Assign ownership for the entire repository to the main maintainer
+* @kuokiii
+
+# Assign frontend-related files to the frontend team
+/frontend/ @kuokiii @frontend-team
+/components/ @kuokiii @frontend-team
+
+# Assign backend-related files to the backend team
+/backend/ @kuokiii @backend-team
+/api/ @kuokiii @backend-team
+
+# Assign DevOps and CI/CD-related files to the DevOps team
+/.github/ @kuokiii @devops-team
+/vercel.json @kuokiii @devops-team
+
+# Assign documentation-related files to the documentation team
+/docs/ @kuokiii @docs-team
+
+# Assign configuration files to the project lead
+*.config.js @kuokiii
+.env.example @kuokiii
