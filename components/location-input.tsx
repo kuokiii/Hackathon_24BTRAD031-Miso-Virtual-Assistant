@@ -41,7 +41,7 @@ export default function LocationInput({ onLocationChange, defaultLocation = "" }
         try {
           // Convert coordinates to location name using reverse geocoding
           const response = await fetch(
-            `https://api.openweathermap.org/geo/1.0/reverse?lat=${position.coords.latitude}&lon=${position.coords.longitude}&limit=1&appid=6633ca963c8199791033db2c939e5fbe`,
+            `lat=${position.coords.latitude}&lon=${position.coords.longitude}&limit=1&appid=`,
           )
 
           if (!response.ok) {
