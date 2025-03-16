@@ -59,7 +59,7 @@ export default function MisoAssistant() {
     volume: 80,
     rate: 1,
     pitch: 1,
-    voice: "female",
+    voice: "female_default",
   })
 
   const [themeSettings, setThemeSettings] = useState({
@@ -176,7 +176,7 @@ export default function MisoAssistant() {
 
         // Speak the response if voice is enabled
         if (voiceSettings.enabled) {
-          speak(specialCommand.response, voiceSettings.rate, voiceSettings.pitch)
+          speak(specialCommand.response, voiceSettings.rate, voiceSettings.pitch, voiceSettings.voice)
         }
       } else {
         // Call our API route for regular AI processing
@@ -212,7 +212,7 @@ export default function MisoAssistant() {
 
         // Speak the response if voice is enabled
         if (voiceSettings.enabled) {
-          speak(responseText, voiceSettings.rate, voiceSettings.pitch)
+          speak(responseText, voiceSettings.rate, voiceSettings.pitch, voiceSettings.voice)
         }
       }
     } catch (error) {
