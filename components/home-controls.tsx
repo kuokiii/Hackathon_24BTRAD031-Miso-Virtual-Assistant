@@ -214,8 +214,12 @@ export default function HomeControls({ onClose }: HomeControlsProps) {
 
   return (
     <Card className="w-full max-w-2xl mx-auto">
-      <CardHeader>
+      <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle>Smart Home Controls</CardTitle>
+        <Button variant="outline" size="sm" onClick={onClose}>
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          Back to Chat
+        </Button>
       </CardHeader>
 
       <Tabs defaultValue="lights" value={activeTab} onValueChange={setActiveTab}>
@@ -280,14 +284,6 @@ export default function HomeControls({ onClose }: HomeControlsProps) {
                 </div>
               </ScrollArea>
             )}
-
-            {/* Back to Chat button specifically for the lights tab */}
-            <div className="mt-4">
-              <Button variant="outline" size="sm" className="w-full" onClick={onClose}>
-                <ArrowLeft className="mr-2 h-4 w-4" />
-                Back to Chat
-              </Button>
-            </div>
           </CardContent>
         </TabsContent>
 
@@ -401,14 +397,9 @@ export default function HomeControls({ onClose }: HomeControlsProps) {
           </CardContent>
         </TabsContent>
       </Tabs>
-
-      <div className="p-4 border-t border-primary/10">
-        <Button variant="outline" size="sm" className="w-full" onClick={onClose}>
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Back to Chat
-        </Button>
-      </div>
     </Card>
   )
 }
+
+
 
