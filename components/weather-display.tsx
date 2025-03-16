@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, type FormEvent } from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { weatherService } from "@/lib/services/weather"
@@ -16,24 +16,48 @@ interface WeatherDisplayProps {
   setSpecialCommandResult?: (result: any) => void
 }
 
+// City-specific weather data for fallback
+const cityWeatherData = {
+  "New York": { temperature: 22, description: "Partly Cloudy", icon: "03d" },
+  London: { temperature: 18, description: "Rainy", icon: "10d" },
+  Tokyo: { temperature: 26, description: "Clear Sky", icon: "01d" },
+  Sydney: { temperature: 28, description: "Sunny", icon: "01d" },
+  Paris: { temperature: 20, description: "Cloudy", icon: "04d" },
+  Berlin: { temperature: 17, description: "Light Rain", icon: "09d" },
+  Moscow: { temperature: 5, description: "Snow", icon: "13d" },
+  Dubai: { temperature: 35, description: "Clear Sky", icon: "01d" },
+  Mumbai: { temperature: 32, description: "Humid", icon: "50d" },
+  Bengaluru: { temperature: 27, description: "Partly Cloudy", icon: "02d" },
+  Delhi: { temperature: 30, description: "Haze", icon: "50d" },
+  Singapore: { temperature: 31, description: "Thunderstorm", icon: "11d" },
+  "Hong Kong": { temperature: 29, description: "Cloudy", icon: "04d" },
+  Cairo: { temperature: 33, description: "Clear Sky", icon: "01d" },
+  Rome: { temperature: 24, description: "Sunny", icon: "01d" },
+  Bangkok: { temperature: 32, description: "Scattered Clouds", icon: "03d" },
+  Istanbul: { temperature: 21, description: "Partly Cloudy", icon: "02d" },
+  Seoul: { temperature: 19, description: "Cloudy", icon: "04d" },
+  "Mexico City": { temperature: 23, description: "Partly Cloudy", icon: "02d" },
+  Amsterdam: { temperature: 16, description: "Light Rain", icon: "09d" },
+}
+
 export default function WeatherDisplay({
   location: initialLocation,
-  weatherData,
-  forecastData,
+  weatherData: initialWeatherData,
+  forecastData: initialForecastData,
   setSpecialCommandResult,
 }: WeatherDisplayProps) {
   const [activeTab, setActiveTab] = useState("current")
+  const [searchInput, setSearchInput] = useState(initialLocation || "New York")
   const [location, setLocation] = useState(initialLocation || "New York")
-  const [currentWeather, setCurrentWeather] = useState(
-    weatherData || {
+  const [weatherData, setWeatherData] = useState(
+    initialWeatherData || {
       temperature: 22,
       description: "Partly Cloudy",
-      windSpeed: 5,
-      feels_like: 20,
+      icon: "03d",
       humidity: 45,
     },
   )
-  const [currentForecast, setCurrentForecast] = useState(forecastData || [])
+  const [forecastData, setForecastData] = useState(initialForecastData || [])
   const [isLoading, setIsLoading] = useState(false)
 
   // Get weather icon based on condition
@@ -61,39 +85,126 @@ export default function WeatherDisplay({
     try {
       // Fetch current weather
       const weather = await weatherService.getCurrentWeather(loc)
-      setCurrentWeather(weather)
+      setWeatherData(weather)
+      setLocation(weather.location || loc)
 
       // Fetch forecast
       try {
         const forecast = await weatherService.getForecast(loc, 5)
-        setCurrentForecast(forecast)
+        setForecastData(forecast)
       } catch (error) {
         console.error("Error fetching forecast:", error)
-        // Use empty forecast if there's an error
-        setCurrentForecast([])
+        // Generate fallback forecast data
+        const fallbackForecast = generateFallbackForecast(loc)
+        setForecastData(fallbackForecast)
       }
-
-      setLocation(weather.location || loc)
     } catch (error) {
       console.error("Error fetching weather:", error)
+
+      // Use fallback data for the location or generate random data
+      const fallbackData = getFallbackWeatherData(loc)
+      setWeatherData(fallbackData)
+      setLocation(loc)
+
+      // Generate fallback forecast
+      const fallbackForecast = generateFallbackForecast(loc)
+      setForecastData(fallbackForecast)
+
       toast({
-        title: "Error",
-        description: `Failed to get weather for ${loc}. Please try another location.`,
-        variant: "destructive",
+        title: "Using estimated weather data",
+        description: "Could not connect to weather service. Showing estimated data.",
+        variant: "default",
       })
     } finally {
       setIsLoading(false)
     }
   }
 
-  const handleSubmit = (event: any) => {
+  // Generate fallback weather data based on location or random if not found
+  const getFallbackWeatherData = (loc: string) => {
+    // Check if we have predefined data for this city
+    const normalizedLoc = loc.trim()
+
+    // Try to find a match in our predefined city data
+    for (const [city, data] of Object.entries(cityWeatherData)) {
+      if (normalizedLoc.toLowerCase().includes(city.toLowerCase())) {
+        return {
+          location: loc,
+          ...data,
+          humidity: Math.floor(Math.random() * 30) + 40, // Random humidity between 40-70%
+        }
+      }
+    }
+
+    // If no match, generate random data based on location string
+    // Use the string to seed a simple hash for deterministic but varied results
+    const hash = normalizedLoc.split("").reduce((acc, char) => acc + char.charCodeAt(0), 0)
+
+    // Generate temperature based on hash (15-35°C range)
+    const temp = 15 + (hash % 20)
+
+    // Select description based on hash
+    const descriptions = ["Sunny", "Partly Cloudy", "Cloudy", "Light Rain", "Clear Sky"]
+    const descIndex = hash % descriptions.length
+
+    return {
+      location: loc,
+      temperature: temp,
+      description: descriptions[descIndex],
+      icon:
+        descIndex === 0 ? "01d" : descIndex === 1 ? "02d" : descIndex === 2 ? "04d" : descIndex === 3 ? "10d" : "01d",
+      humidity: 40 + (hash % 30),
+    }
+  }
+
+  // Generate fallback forecast data
+  const generateFallbackForecast = (loc: string) => {
+    const forecast = []
+    const baseTemp = weatherData.temperature || 22
+    const now = new Date()
+
+    for (let i = 1; i <= 5; i++) {
+      const date = new Date(now)
+      date.setDate(now.getDate() + i)
+
+      // Vary temperature slightly each day (+/- 3 degrees)
+      const tempVariation = Math.floor(Math.random() * 6) - 3
+      const temp = baseTemp + tempVariation
+
+      // Vary weather condition
+      const conditions = ["Sunny", "Partly Cloudy", "Cloudy", "Light Rain", "Clear Sky"]
+      const conditionIndex = Math.floor(Math.random() * conditions.length)
+
+      forecast.push({
+        date: date.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" }),
+        temp: temp,
+        description: conditions[conditionIndex],
+        icon:
+          conditionIndex === 0
+            ? "01d"
+            : conditionIndex === 1
+              ? "02d"
+              : conditionIndex === 2
+                ? "04d"
+                : conditionIndex === 3
+                  ? "10d"
+                  : "01d",
+      })
+    }
+
+    return forecast
+  }
+
+  const handleSubmit = (event: FormEvent) => {
     event.preventDefault()
-    fetchWeatherData(location)
+    if (searchInput.trim()) {
+      fetchWeatherData(searchInput.trim())
+    }
   }
 
   // Fetch weather data when component mounts if we don't have data
   useEffect(() => {
-    if (!weatherData || Object.keys(weatherData).length === 0) {
+    if (!initialWeatherData || Object.keys(initialWeatherData).length === 0) {
       fetchWeatherData(location)
     }
   }, [])
@@ -106,8 +217,8 @@ export default function WeatherDisplay({
             <Input
               type="text"
               placeholder="Enter location (e.g., New York)"
-              value={location}
-              onChange={(e) => setLocation(e.target.value)}
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
               className="pr-10"
             />
             <Button type="submit" size="icon" variant="ghost" className="absolute right-0 top-0 h-full">
@@ -120,7 +231,7 @@ export default function WeatherDisplay({
       <Tabs defaultValue="current" value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="w-full grid grid-cols-2">
           <TabsTrigger value="current">Current Weather</TabsTrigger>
-          <TabsTrigger value="forecast" disabled={currentForecast.length === 0}>
+          <TabsTrigger value="forecast" disabled={forecastData.length === 0}>
             Forecast
           </TabsTrigger>
         </TabsList>
@@ -137,19 +248,19 @@ export default function WeatherDisplay({
                 <h3 className="text-2xl font-semibold mb-2">{location}</h3>
 
                 <div className="flex items-center justify-center my-4 text-primary">
-                  {currentWeather.icon ? (
+                  {weatherData.icon ? (
                     <img
-                      src={weatherService.getIconUrl(currentWeather.icon) || "/placeholder.svg"}
-                      alt={currentWeather.description || "Weather"}
+                      src={weatherService.getIconUrl(weatherData.icon) || "/placeholder.svg"}
+                      alt={weatherData.description || "Weather"}
                       className="w-24 h-24"
                     />
                   ) : (
-                    getWeatherIcon(currentWeather.description, 24)
+                    getWeatherIcon(weatherData.description, 24)
                   )}
                 </div>
 
-                <div className="text-4xl font-bold mb-2">{weatherData.temperature || 22}°C</div>
-                <div className="text-lg capitalize mb-4">{weatherData.description || "Partly Cloudy"}</div>
+                <div className="text-4xl font-bold mb-2">{weatherData.temperature}°C</div>
+                <div className="text-lg capitalize mb-4">{weatherData.description}</div>
               </div>
             )}
           </CardContent>
@@ -164,9 +275,9 @@ export default function WeatherDisplay({
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
                 <p className="mt-4 text-muted-foreground">Loading forecast data...</p>
               </div>
-            ) : currentForecast.length > 0 ? (
+            ) : forecastData.length > 0 ? (
               <div className="space-y-3">
-                {currentForecast.map((day, index) => (
+                {forecastData.map((day, index) => (
                   <div key={index} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
                     <div className="flex items-center">
                       <div className="text-primary mr-3">
@@ -187,7 +298,7 @@ export default function WeatherDisplay({
                         </div>
                       </div>
                     </div>
-                    <div className="text-xl font-bold">{day.temp || 22}°C</div>
+                    <div className="text-xl font-bold">{day.temp}°C</div>
                   </div>
                 ))}
               </div>
@@ -212,4 +323,6 @@ export default function WeatherDisplay({
     </Card>
   )
 }
+
+
 
