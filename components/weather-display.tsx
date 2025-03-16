@@ -1,10 +1,10 @@
 "use client"
 
-import { useState, useEffect, type FormEvent } from "react"
+import { useState, useEffect, type FormEvent, useRef } from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { weatherService } from "@/lib/services/weather"
-import { Cloud, CloudRain, Sun, Thermometer, ArrowLeft, Search } from "lucide-react"
+import { Cloud, CloudRain, Sun, Thermometer, ArrowLeft, Search, ArrowUp, ArrowDown } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { toast } from "@/hooks/use-toast"
@@ -59,6 +59,8 @@ export default function WeatherDisplay({
   )
   const [forecastData, setForecastData] = useState(initialForecastData || [])
   const [isLoading, setIsLoading] = useState(false)
+  const [showScrollButtons, setShowScrollButtons] = useState(false)
+  const scrollAreaRef = useRef<HTMLDivElement>(null)
 
   // Get weather icon based on condition
   const getWeatherIcon = (description: string | undefined, size = 6) => {
@@ -202,12 +204,43 @@ export default function WeatherDisplay({
     }
   }
 
-  // Fetch weather data when component mounts if we don't have data
+  const scrollUp = () => {
+    if (scrollAreaRef.current) {
+      scrollAreaRef.current.scrollTop -= 100
+    }
+  }
+
+  const scrollDown = () => {
+    if (scrollAreaRef.current) {
+      scrollAreaRef.current.scrollTop += 100
+    }
+  }
+
+  // Check if we need to show scroll buttons when content changes
   useEffect(() => {
-    if (!initialWeatherData || Object.keys(initialWeatherData).length === 0) {
+    const checkScrollable = () => {
+      if (scrollAreaRef.current) {
+        const { scrollHeight, clientHeight } = scrollAreaRef.current
+        setShowScrollButtons(scrollHeight > clientHeight)
+      }
+    }
+
+    checkScrollable()
+    // Add resize listener to check again if window size changes
+    window.addEventListener("resize", checkScrollable)
+    return () => window.removeEventListener("resize", checkScrollable)
+  }, [forecastData, activeTab])
+
+  // Fetch weather data when component mounts if we don't have data
+  // or if initialLocation changes (from chat)
+  useEffect(() => {
+    if (initialLocation && initialLocation !== location) {
+      setSearchInput(initialLocation)
+      fetchWeatherData(initialLocation)
+    } else if (!initialWeatherData || Object.keys(initialWeatherData).length === 0) {
       fetchWeatherData(location)
     }
-  }, [])
+  }, [initialLocation])
 
   return (
     <Card className="w-full max-w-md mx-auto overflow-hidden">
@@ -260,13 +293,38 @@ export default function WeatherDisplay({
                 </div>
 
                 <div className="text-4xl font-bold mb-2">{weatherData.temperature}°C</div>
-                <div className="text-lg capitalize mb-4">{weatherData.description}</div>
+                <div className="text-lg capitalize mb-4">{weatherData.description || "Partly Cloudy"}</div>
+
+                {weatherData.humidity && (
+                  <div className="text-sm text-muted-foreground">Humidity: {weatherData.humidity}%</div>
+                )}
               </div>
             )}
           </CardContent>
         </TabsContent>
 
-        <TabsContent value="forecast" className="p-0">
+        <TabsContent value="forecast" className="p-0 relative">
+          {showScrollButtons && (
+            <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex flex-col gap-2 z-10">
+              <Button
+                variant="outline"
+                size="icon"
+                className="rounded-full h-8 w-8 bg-background/80 backdrop-blur-sm"
+                onClick={scrollUp}
+              >
+                <ArrowUp className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="outline"
+                size="icon"
+                className="rounded-full h-8 w-8 bg-background/80 backdrop-blur-sm"
+                onClick={scrollDown}
+              >
+                <ArrowDown className="h-4 w-4" />
+              </Button>
+            </div>
+          )}
+
           <CardContent className="p-6">
             <h3 className="text-xl font-semibold mb-4 text-center">5-Day Forecast for {location}</h3>
 
@@ -276,7 +334,7 @@ export default function WeatherDisplay({
                 <p className="mt-4 text-muted-foreground">Loading forecast data...</p>
               </div>
             ) : forecastData.length > 0 ? (
-              <div className="space-y-3">
+              <div className="space-y-3" ref={scrollAreaRef} style={{ maxHeight: "300px", overflowY: "auto" }}>
                 {forecastData.map((day, index) => (
                   <div key={index} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
                     <div className="flex items-center">
@@ -323,6 +381,8 @@ export default function WeatherDisplay({
     </Card>
   )
 }
+
+
 
 
 
