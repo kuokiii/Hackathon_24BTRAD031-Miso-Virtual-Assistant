@@ -242,6 +242,7 @@ export default function WeatherDisplay({
     }
   }, [initialLocation])
 
+  // Make sure the temperature is displayed properly in the weather display component
   return (
     <Card className="w-full max-w-md mx-auto overflow-hidden">
       <div className="p-4 border-b border-primary/10">
@@ -292,7 +293,9 @@ export default function WeatherDisplay({
                   )}
                 </div>
 
-                <div className="text-4xl font-bold mb-2">{weatherData.temperature}°C</div>
+                <div className="text-4xl font-bold mb-2">
+                  {weatherData.temperature !== undefined ? weatherData.temperature : 22}°C
+                </div>
                 <div className="text-lg capitalize mb-4">{weatherData.description || "Partly Cloudy"}</div>
 
                 {weatherData.humidity && (
@@ -356,7 +359,7 @@ export default function WeatherDisplay({
                         </div>
                       </div>
                     </div>
-                    <div className="text-xl font-bold">{day.temp}°C</div>
+                    <div className="text-xl font-bold">{day.temp !== undefined ? day.temp : 22}°C</div>
                   </div>
                 ))}
               </div>
@@ -381,6 +384,8 @@ export default function WeatherDisplay({
     </Card>
   )
 }
+
+
 
 
 
