@@ -4,11 +4,11 @@ import type React from "react"
 
 import Link from "next/link"
 import { motion, useScroll, useTransform } from "framer-motion"
-import { ArrowRight, MessageSquare, Mic, Volume2, Sparkles, ChevronDown } from "lucide-react"
+import { ArrowRight, MessageSquare, Mic, Volume2, Sparkles, ChevronDown, Sun, Moon } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import Footer from "@/components/footer"
 import CherryBlossomIcon from "@/components/cherry-blossom-icon"
-import { useRef } from "react"
+import { useRef, useState, useEffect } from "react"
 
 export default function LandingPage() {
   const containerRef = useRef(null)
@@ -20,12 +20,59 @@ export default function LandingPage() {
   const opacity = useTransform(scrollYProgress, [0, 0.5], [1, 0])
   const scale = useTransform(scrollYProgress, [0, 0.5], [1, 0.8])
 
+  const [isDarkMode, setIsDarkMode] = useState(false)
+
+  // Check for system preference and saved preference on mount
+  useEffect(() => {
+    // Check if user has a saved preference
+    const savedTheme = localStorage.getItem("theme")
+
+    if (savedTheme === "dark") {
+      setIsDarkMode(true)
+      document.documentElement.classList.add("dark")
+    } else if (savedTheme === "light") {
+      setIsDarkMode(false)
+      document.documentElement.classList.remove("dark")
+    } else {
+      // Check system preference
+      const systemPrefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches
+      setIsDarkMode(systemPrefersDark)
+
+      if (systemPrefersDark) {
+        document.documentElement.classList.add("dark")
+      }
+    }
+  }, [])
+
+  const toggleTheme = () => {
+    if (isDarkMode) {
+      document.documentElement.classList.remove("dark")
+      localStorage.setItem("theme", "light")
+    } else {
+      document.documentElement.classList.add("dark")
+      localStorage.setItem("theme", "dark")
+    }
+    setIsDarkMode(!isDarkMode)
+  }
+
   const scrollToFeatures = () => {
     document.getElementById("features")?.scrollIntoView({ behavior: "smooth" })
   }
 
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-b from-background to-background/50" ref={containerRef}>
+      {/* Theme Toggle Button */}
+      <div className="fixed top-4 right-4 z-50">
+        <Button
+          variant="outline"
+          size="icon"
+          className="rounded-full bg-background/80 backdrop-blur-sm"
+          onClick={toggleTheme}
+        >
+          {isDarkMode ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+        </Button>
+      </div>
+
       {/* Hero Section */}
       <section className="relative min-h-screen flex flex-col justify-center py-12 sm:py-16 md:py-20 px-4 md:px-6 lg:px-8 overflow-hidden">
         <div className="absolute inset-0 -z-10 overflow-hidden">
@@ -328,4 +375,6 @@ function FeatureCard({
     </motion.div>
   )
 }
+
+
 
