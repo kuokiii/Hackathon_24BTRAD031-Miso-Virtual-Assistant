@@ -7,8 +7,9 @@ import { Switch } from "@/components/ui/switch"
 import { Slider } from "@/components/ui/slider"
 import { Label } from "@/components/ui/label"
 import { homeAssistant } from "@/lib/services/home-assistant"
-import { Lightbulb, Thermometer, Power, Speaker } from "lucide-react"
+import { Lightbulb, Thermometer, Power, Speaker, ArrowLeft } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { ScrollArea } from "@/components/ui/scroll-area"
 
 // Update the component to accept a new prop for closing the display
 interface HomeControlsProps {
@@ -242,41 +243,49 @@ export default function HomeControls({ onClose }: HomeControlsProps) {
             {Object.keys(devices.lights).length === 0 ? (
               <p className="text-center text-muted-foreground">No lights found</p>
             ) : (
-              <div className="space-y-4">
-                {Object.entries(devices.lights).map(([entityId, device]: [string, any]) => (
-                  <div key={entityId} className="p-4 bg-muted/50 rounded-lg">
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="flex items-center gap-2">
-                        <Lightbulb
-                          className={`h-5 w-5 ${device.state === "on" ? "text-primary" : "text-muted-foreground"}`}
-                        />
-                        <span className="font-medium">{device.attributes.friendly_name}</span>
-                      </div>
-                      <Switch checked={device.state === "on"} onCheckedChange={() => toggleLight(entityId)} />
-                    </div>
-
-                    {device.state === "on" && (
-                      <div className="mt-4">
-                        <div className="flex items-center justify-between mb-2">
-                          <Label htmlFor={`${entityId}-brightness`}>Brightness</Label>
-                          <span className="text-sm text-muted-foreground">
-                            {Math.round(((device.attributes.brightness || 0) / 255) * 100)}%
-                          </span>
+              <ScrollArea className="h-[300px] pr-4">
+                <div className="space-y-4">
+                  {Object.entries(devices.lights).map(([entityId, device]: [string, any]) => (
+                    <div key={entityId} className="p-4 bg-muted/50 rounded-lg">
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-2">
+                          <Lightbulb
+                            className={`h-5 w-5 ${device.state === "on" ? "text-primary" : "text-muted-foreground"}`}
+                          />
+                          <span className="font-medium">{device.attributes.friendly_name}</span>
                         </div>
-                        <Slider
-                          id={`${entityId}-brightness`}
-                          min={0}
-                          max={1}
-                          step={0.01}
-                          value={[(device.attributes.brightness || 0) / 255]}
-                          onValueChange={([value]) => setLightBrightness(entityId, value)}
-                        />
+                        <Switch checked={device.state === "on"} onCheckedChange={() => toggleLight(entityId)} />
                       </div>
-                    )}
-                  </div>
-                ))}
-              </div>
+
+                      {device.state === "on" && (
+                        <div className="mt-4">
+                          <div className="flex items-center justify-between mb-2">
+                            <Label htmlFor={`${entityId}-brightness`}>Brightness</Label>
+                            <span className="text-sm text-muted-foreground">
+                              {Math.round(((device.attributes.brightness || 0) / 255) * 100)}%
+                            </span>
+                          </div>
+                          <Slider
+                            id={`${entityId}-brightness`}
+                            min={0}
+                            max={1}
+                            step={0.01}
+                            value={[(device.attributes.brightness || 0) / 255]}
+                            onValueChange={([value]) => setLightBrightness(entityId, value)}
+                          />
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </ScrollArea>
             )}
+            <div className="mt-4">
+              <Button variant="outline" size="sm" className="w-full" onClick={onClose}>
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Back to Chat
+              </Button>
+            </div>
           </CardContent>
         </TabsContent>
 
@@ -285,36 +294,38 @@ export default function HomeControls({ onClose }: HomeControlsProps) {
             {Object.keys(devices.thermostats).length === 0 ? (
               <p className="text-center text-muted-foreground">No thermostats found</p>
             ) : (
-              <div className="space-y-4">
-                {Object.entries(devices.thermostats).map(([entityId, device]: [string, any]) => (
-                  <div key={entityId} className="p-4 bg-muted/50 rounded-lg">
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="flex items-center gap-2">
-                        <Thermometer
-                          className={`h-5 w-5 ${device.state === "on" ? "text-primary" : "text-muted-foreground"}`}
-                        />
-                        <span className="font-medium">{device.attributes.friendly_name}</span>
-                      </div>
-                      <div className="text-xl font-bold">{device.attributes.temperature}°C</div>
-                    </div>
-
-                    <div className="mt-4">
+              <ScrollArea className="h-[300px] pr-4">
+                <div className="space-y-4">
+                  {Object.entries(devices.thermostats).map(([entityId, device]: [string, any]) => (
+                    <div key={entityId} className="p-4 bg-muted/50 rounded-lg">
                       <div className="flex items-center justify-between mb-2">
-                        <Label htmlFor={`${entityId}-temp`}>Target Temperature</Label>
-                        <span className="text-sm text-muted-foreground">{device.attributes.target_temp}°C</span>
+                        <div className="flex items-center gap-2">
+                          <Thermometer
+                            className={`h-5 w-5 ${device.state === "on" ? "text-primary" : "text-muted-foreground"}`}
+                          />
+                          <span className="font-medium">{device.attributes.friendly_name}</span>
+                        </div>
+                        <div className="text-xl font-bold">{device.attributes.temperature}°C</div>
                       </div>
-                      <Slider
-                        id={`${entityId}-temp`}
-                        min={16}
-                        max={28}
-                        step={0.5}
-                        value={[device.attributes.target_temp]}
-                        onValueChange={([value]) => setTemperature(entityId, value)}
-                      />
+
+                      <div className="mt-4">
+                        <div className="flex items-center justify-between mb-2">
+                          <Label htmlFor={`${entityId}-temp`}>Target Temperature</Label>
+                          <span className="text-sm text-muted-foreground">{device.attributes.target_temp}°C</span>
+                        </div>
+                        <Slider
+                          id={`${entityId}-temp`}
+                          min={16}
+                          max={28}
+                          step={0.5}
+                          value={[device.attributes.target_temp]}
+                          onValueChange={([value]) => setTemperature(entityId, value)}
+                        />
+                      </div>
                     </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              </ScrollArea>
             )}
           </CardContent>
         </TabsContent>
@@ -324,21 +335,23 @@ export default function HomeControls({ onClose }: HomeControlsProps) {
             {Object.keys(devices.switches).length === 0 ? (
               <p className="text-center text-muted-foreground">No switches found</p>
             ) : (
-              <div className="space-y-4">
-                {Object.entries(devices.switches).map(([entityId, device]: [string, any]) => (
-                  <div key={entityId} className="p-4 bg-muted/50 rounded-lg">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <Power
-                          className={`h-5 w-5 ${device.state === "on" ? "text-primary" : "text-muted-foreground"}`}
-                        />
-                        <span className="font-medium">{device.attributes.friendly_name}</span>
+              <ScrollArea className="h-[300px] pr-4">
+                <div className="space-y-4">
+                  {Object.entries(devices.switches).map(([entityId, device]: [string, any]) => (
+                    <div key={entityId} className="p-4 bg-muted/50 rounded-lg">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <Power
+                            className={`h-5 w-5 ${device.state === "on" ? "text-primary" : "text-muted-foreground"}`}
+                          />
+                          <span className="font-medium">{device.attributes.friendly_name}</span>
+                        </div>
+                        <Switch checked={device.state === "on"} onCheckedChange={() => toggleSwitch(entityId)} />
                       </div>
-                      <Switch checked={device.state === "on"} onCheckedChange={() => toggleSwitch(entityId)} />
                     </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              </ScrollArea>
             )}
           </CardContent>
         </TabsContent>
@@ -348,38 +361,40 @@ export default function HomeControls({ onClose }: HomeControlsProps) {
             {Object.keys(devices.media_players).length === 0 ? (
               <p className="text-center text-muted-foreground">No media players found</p>
             ) : (
-              <div className="space-y-4">
-                {Object.entries(devices.media_players).map(([entityId, device]: [string, any]) => (
-                  <div key={entityId} className="p-4 bg-muted/50 rounded-lg">
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="flex items-center gap-2">
-                        <Speaker
-                          className={`h-5 w-5 ${device.state !== "off" ? "text-primary" : "text-muted-foreground"}`}
-                        />
-                        <span className="font-medium">{device.attributes.friendly_name}</span>
-                      </div>
-                      <div className="text-sm text-muted-foreground capitalize">{device.state}</div>
-                    </div>
-
-                    <div className="mt-4">
+              <ScrollArea className="h-[300px] pr-4">
+                <div className="space-y-4">
+                  {Object.entries(devices.media_players).map(([entityId, device]: [string, any]) => (
+                    <div key={entityId} className="p-4 bg-muted/50 rounded-lg">
                       <div className="flex items-center justify-between mb-2">
-                        <Label htmlFor={`${entityId}-volume`}>Volume</Label>
-                        <span className="text-sm text-muted-foreground">
-                          {Math.round(device.attributes.volume * 100)}%
-                        </span>
+                        <div className="flex items-center gap-2">
+                          <Speaker
+                            className={`h-5 w-5 ${device.state !== "off" ? "text-primary" : "text-muted-foreground"}`}
+                          />
+                          <span className="font-medium">{device.attributes.friendly_name}</span>
+                        </div>
+                        <div className="text-sm text-muted-foreground capitalize">{device.state}</div>
                       </div>
-                      <Slider
-                        id={`${entityId}-volume`}
-                        min={0}
-                        max={1}
-                        step={0.01}
-                        value={[device.attributes.volume]}
-                        onValueChange={([value]) => setVolume(entityId, value)}
-                      />
+
+                      <div className="mt-4">
+                        <div className="flex items-center justify-between mb-2">
+                          <Label htmlFor={`${entityId}-volume`}>Volume</Label>
+                          <span className="text-sm text-muted-foreground">
+                            {Math.round(device.attributes.volume * 100)}%
+                          </span>
+                        </div>
+                        <Slider
+                          id={`${entityId}-volume`}
+                          min={0}
+                          max={1}
+                          step={0.01}
+                          value={[device.attributes.volume]}
+                          onValueChange={([value]) => setVolume(entityId, value)}
+                        />
+                      </div>
                     </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              </ScrollArea>
             )}
           </CardContent>
         </TabsContent>
@@ -387,10 +402,13 @@ export default function HomeControls({ onClose }: HomeControlsProps) {
 
       <div className="p-4 border-t border-primary/10">
         <Button variant="outline" size="sm" className="w-full" onClick={onClose}>
+          <ArrowLeft className="mr-2 h-4 w-4" />
           Back to Chat
         </Button>
       </div>
     </Card>
   )
 }
+
+
 
