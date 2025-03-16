@@ -280,6 +280,8 @@ export default function HomeControls({ onClose }: HomeControlsProps) {
                 </div>
               </ScrollArea>
             )}
+
+            {/* Back to Chat button specifically for the lights tab */}
             <div className="mt-4">
               <Button variant="outline" size="sm" className="w-full" onClick={onClose}>
                 <ArrowLeft className="mr-2 h-4 w-4" />
@@ -409,6 +411,4 @@ export default function HomeControls({ onClose }: HomeControlsProps) {
     </Card>
   )
 }
-
-
 
