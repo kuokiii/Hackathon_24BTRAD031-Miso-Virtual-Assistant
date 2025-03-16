@@ -40,7 +40,10 @@ export default function SettingsDialog({
   modelSettings,
   setModelSettings,
 }: SettingsDialogProps) {
-  const [localVoiceSettings, setLocalVoiceSettings] = useState(voiceSettings)
+  const [localVoiceSettings, setLocalVoiceSettings] = useState({
+    ...voiceSettings,
+    voice: voiceSettings.voice || "female_japanese",
+  })
   const [localThemeSettings, setLocalThemeSettings] = useState(themeSettings)
   const [localModelSettings, setLocalModelSettings] = useState(modelSettings)
 
@@ -104,9 +107,11 @@ export default function SettingsDialog({
                   <SelectValue placeholder="Select voice" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="default">Default</SelectItem>
-                  <SelectItem value="female">Female</SelectItem>
+                  <SelectItem value="female_default">English Female</SelectItem>
+                  <SelectItem value="female_soft">Soft Female</SelectItem>
+                  <SelectItem value="female_clear">Clear Female</SelectItem>
                   <SelectItem value="male">Male</SelectItem>
+                  <SelectItem value="female_japanese">Japanese Female</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -264,4 +269,6 @@ export default function SettingsDialog({
     </Dialog>
   )
 }
+
+
 
