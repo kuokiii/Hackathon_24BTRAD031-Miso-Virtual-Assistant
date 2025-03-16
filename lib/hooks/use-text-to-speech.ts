@@ -37,16 +37,67 @@ export function useTextToSpeech() {
   }, [])
 
   const speak = useCallback(
-    (text: string, rate = 1, pitch = 1) => {
+    (text: string, rate = 1, pitch = 1, voiceType = "female_default") => {
       if (typeof window !== "undefined" && "speechSynthesis" in window) {
         // Cancel any ongoing speech
         window.speechSynthesis.cancel()
 
         const utterance = new SpeechSynthesisUtterance(text)
 
-        if (selectedVoice) {
+        // Select voice based on voiceType
+        if (voices.length > 0) {
+          let voice = null
+
+          // Prioritize English female voices
+          if (voiceType === "female_default" || voiceType === "female_japanese") {
+            voice = voices.find(
+              (v) =>
+                (v.lang.includes("en") || v.lang.includes("EN")) &&
+                (v.name.includes("female") ||
+                  v.name.includes("Female") ||
+                  v.name.includes("Samantha") ||
+                  v.name.includes("Karen")),
+            )
+          } else if (voiceType === "female_soft") {
+            voice = voices.find(
+              (v) =>
+                (v.lang.includes("en") || v.lang.includes("EN")) &&
+                (v.name.includes("Samantha") || v.name.includes("Karen")),
+            )
+          } else if (voiceType === "female_clear") {
+            voice = voices.find(
+              (v) =>
+                (v.lang.includes("en") || v.lang.includes("EN")) &&
+                v.name.includes("Google") &&
+                (v.name.includes("female") || v.name.includes("Female") || !v.name.includes("Male")),
+            )
+          } else if (voiceType === "male") {
+            voice = voices.find(
+              (v) =>
+                (v.lang.includes("en") || v.lang.includes("EN")) &&
+                (v.name.includes("male") || v.name.includes("Male")),
+            )
+          }
+
+          // Fallback to any English voice if specific type not found
+          if (!voice) {
+            voice = voices.find((v) => v.lang.includes("en") || v.lang.includes("EN"))
+          }
+
+          // Last resort: any available voice
+          if (!voice && voices.length > 0) {
+            voice = voices[0]
+          }
+
+          if (voice) {
+            utterance.voice = voice
+          }
+        } else if (selectedVoice) {
           utterance.voice = selectedVoice
         }
+
+        // Ensure English language
+        utterance.lang = "en-US"
 
         utterance.rate = rate
         utterance.pitch = pitch
@@ -58,7 +109,7 @@ export function useTextToSpeech() {
         window.speechSynthesis.speak(utterance)
       }
     },
-    [selectedVoice],
+    [voices, selectedVoice],
   )
 
   const stop = useCallback(() => {
